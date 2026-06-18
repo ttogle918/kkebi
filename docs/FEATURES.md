@@ -1,3 +1,5 @@
+[⬅ README로 돌아가기](../README.md)
+
 # SecureAI Editor — 구현된 기능 목록
 
 > 코드베이스 직접 분석 기준 (2026-06-17). 실제 동작하는 기능만 포함.
@@ -536,3 +538,7 @@ sequenceDiagram
 | Monaco 기반 코드 에디터 + 분석 통합 UI | Frontend | ✅ 구현 |
 | Android 모바일 앱 | Mobile | ✅ 구현 |
 | 토큰 사용량 기반 크레딧 차감 | 과금 | ✅ 구현 |
+
+---
+
+[⬅ README로 돌아가기](../README.md)

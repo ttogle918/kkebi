@@ -1,3 +1,5 @@
+[⬅ README로 돌아가기](../README.md)
+
 # SecureAI — API 보안 체크리스트
 > 작성일: 2026-04-25 | 버전: v1.0  
 > 목적: API 개발 완료 후 보안 검토 시 사용하는 체크리스트  
@@ -289,3 +291,7 @@
 
 *관련 문서: `02_API_DESIGN.md` (API 명세), `00_ARCHITECTURE_DECISIONS.md` (ADR), `14_SECURITY_TEAM_FEATURES.md` (보안팀 기능)*  
 *다음 업데이트: Sprint 6 DAST 완성 후 섹션 6 보강 예정*
+
+---
+
+[⬅ README로 돌아가기](../README.md)

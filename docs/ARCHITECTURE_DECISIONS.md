@@ -1,3 +1,5 @@
+[⬅ README로 돌아가기](../README.md)
+
 # SecureAI — 아키텍처 의사결정 기록 (ADR)
 > 데이터 아키텍처 전문가 ↔ 시니어 백엔드 개발자 의논 결과  
 > 작성일: 2026-04-19 | 상태: 확정
@@ -448,3 +450,7 @@ List<Object[]> findVulnTypeSummaryByProjectId(@Param("projectId") UUID projectId
 
 두 내부 엔드포인트는 `InternalKeyAuthFilter`로 보호된다 (`X-Internal-Key` 헤더 검증).  
 `SecurityConfig`의 `/api/v1/internal/**` 패턴에 포함되어 JWT 없이 내부키만으로 접근된다.
+
+---
+
+[⬅ README로 돌아가기](../README.md)
