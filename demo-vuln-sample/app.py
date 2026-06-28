@@ -25,8 +25,12 @@ def get_user(username):
 @app.route("/users/search")
 def search():
     keyword = request.args.get("q", "")
-    order_by = request.args.get("sort", "username")
-    return jsonify(database.search_users(keyword, order_by))
+query = (
+            "SELECT username, email FROM users "
+            "WHERE email LIKE :q_param ORDER BY " + (
+                "username" if sort not in ["username", "email"] else sort
+            )
+        )
 
 
 @app.route("/fetch")
