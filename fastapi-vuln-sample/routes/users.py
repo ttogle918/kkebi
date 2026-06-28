@@ -34,4 +34,4 @@ def get_user(user_id: str):
 @router.get("/greet")
 def greet(name: str = "guest"):
     """인사 페이지. 취약: name을 이스케이프 없이 HTML에 반영 (반사형 XSS)."""
-    return HTMLResponse(f"<html><body><h1>Hello, {name}!</h1></body></html>")
+    return HTMLResponse(f"<html><body><h1>Hello, {html.escape(name)}!</h1></body></html>")
