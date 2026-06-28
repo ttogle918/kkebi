@@ -32,7 +32,38 @@ def search():
 @app.route("/fetch")
 def fetch_remote():
     """원격 아바타 이미지를 프록시로 가져온다."""
-    url = request.args.get("url")
+url = request.args.get("url")
+    
+    # Validate the URL to prevent SSRF
+    allowed_schemes = ['http', 'https']
+    allowed_domains = ['example.com', 'api.example.com'] # Whitelist of allowed domains
+
+    if not url:
+        return "URL parameter is missing", 400
+
+    try:
+        parsed_url = urlparse(url)
+    except ValueError:
+        return "Invalid URL format", 400
+
+    if parsed_url.scheme not in allowed_schemes:
+        return "Unsupported URL scheme", 400
+
+    if parsed_url.hostname not in allowed_domains:
+        return "Access to this domain is not allowed", 403
+
+    # Further check to prevent IP addresses in case DNS rebinding is a concern for allowed domains
+    # For this example, we assume allowed_domains are sufficiently restricted to trusted hostnames
+    # If direct IP access to trusted services is required, this logic needs refinement
+    try:
+        # Ensure the hostname resolves to a public IP or a specifically allowed internal IP range
+        # This can be complex and may require a robust internal allowlist for IP ranges
+        # For simplicity, we'll rely on hostname validation for this patch.
+        # A more advanced solution would involve DNS resolution and IP range checking.
+        pass
+    except Exception as e:
+        return f"Error resolving hostname: {e}", 500
+
     resp = requests.get(url, timeout=5)
     return resp.content, resp.status_code
 
