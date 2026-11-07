@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kkebi — 내 코드의 보안 구멍 찾기</title>
+<meta name="description" content="코드 보안 점검, 고치는 방법 제안, 안전한 샌드박스에서 실제로 뚫리는지 확인, 고친 뒤 다시 확인까지. kkebi 클로즈드 베타(Windows) 다운로드.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c2410c'/%3E%3Cpath d='M16 6l8 3v7c0 5-3.5 8.5-8 10-4.5-1.500-8-5-8-10V9z' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+/* 색 출처: apps/frontend/src/ui-v2/styles/tokens.css (어둡게 = 기본 값, 밝게 = data-theme=light 값) */
+:root{
+  color-scheme:dark;
+  --bg-0:#080809;--bg-1:#0d0d0f;--bg-2:#111114;--bg-3:#161619;--bg-4:#1c1c20;
+  --border:#1f1f24;--border-2:#2a2a30;--border-3:#3a3a44;
+  --text-1:#f1f1f6;--text-2:#b4b4be;--text-3:#8c8c97;
+  --brand:#f97316;--accent:#f97316;--accent-dim:rgba(249,115,22,.12);--accent-border:rgba(249,115,22,.45);
+  --btn:#c2410c;--btn-hover:#9a3412;--on-accent:#fff;
+  --critical:#f25555;--critical-dim:rgba(242,85,85,.1);
+  --high:#f59e0b;--high-dim:rgba(245,158,11,.1);
+  --medium:#eab308;--low:#22c55e;--low-dim:rgba(34,197,94,.1);
+  --info:#569cd6;--info-dim:rgba(86,156,214,.1);
+  --font:'Space Grotesk','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  --mono:'JetBrains Mono',Consolas,ui-monospace,monospace;
+}
+@media (prefers-color-scheme:light){
+  :root{
+    color-scheme:light;
+    --bg-0:#f4f2ee;--bg-1:#faf9f7;--bg-2:#ffffff;--bg-3:#f1efeb;--bg-4:#e8e5df;
+    --border:#e4e1db;--border-2:#d6d2ca;--border-3:#b9b4aa;
+    --text-1:#1c1b19;--text-2:#47443e;--text-3:#5e5951;
+    --brand:#ea580c;--accent:#ad3a0b;--accent-dim:rgba(234,88,12,.1);--accent-border:rgba(194,65,12,.45);
+    --critical:#b91c1c;--critical-dim:rgba(185,28,28,.08);
+    --high:#92400e;--high-dim:rgba(146,64,14,.08);
+    --medium:#854d0e;--low:#166534;--low-dim:rgba(22,101,52,.1);
+    --info:#1d4ed8;--info-dim:rgba(29,78,216,.08);
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--bg-0);color:var(--text-1);font-family:var(--font);font-size:16px;line-height:1.7;word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--btn);color:#fff;padding:8px 14px;border-radius:8px;z-index:10}
+.skip:focus{left:8px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+header.top{border-bottom:1px solid var(--border);background:var(--bg-1)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;min-height:60px;gap:12px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:var(--text-1);text-decoration:none}
+.logo svg{flex-shrink:0}
+nav.links{display:flex;gap:18px;font-size:14px}
+nav.links a{color:var(--text-2);text-decoration:none;padding:8px 2px}
+nav.links a:hover{color:var(--text-1)}
+@media (max-width:640px){nav.links a:not(.keep){display:none}}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:999px;padding:4px 12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 24px;border-radius:10px;border:1px solid transparent;font:600 16px var(--font);text-decoration:none;cursor:pointer}
+.btn.primary{background:var(--btn);color:var(--on-accent)}
+.btn.primary:hover{background:var(--btn-hover)}
+.btn.ghost{background:transparent;color:var(--text-1);border-color:var(--border-3)}
+.btn.ghost:hover{background:var(--bg-3)}
+section{padding:72px 0;border-top:1px solid var(--border)}
+section:first-of-type{border-top:0}
+h1{font-size:clamp(30px,5.5vw,48px);line-height:1.25;margin:18px 0 16px;letter-spacing:-.01em}
+h2{font-size:clamp(24px,3.8vw,32px);line-height:1.3;margin:0 0 12px}
+h3{font-size:18px;margin:0 0 6px}
+.lead{font-size:18px;color:var(--text-2);max-width:640px;margin:0 0 28px}
+.sub{color:var(--text-2);max-width:680px;margin:0 0 32px}
+.small{font-size:13px;color:var(--text-3);line-height:1.6}
+.hero{padding:72px 0 56px}
+.hero .cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:860px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}}
+@media (max-width:560px){.g2,.g4{grid-template-columns:1fr}}
+.card{background:var(--bg-2);border:1px solid var(--border-2);border-radius:12px;padding:20px}
+.card p{margin:0;color:var(--text-2);font-size:15px}
+.flow{background:var(--bg-1);border:1px solid var(--border-2);border-radius:12px;padding:16px;margin:0 0 28px}
+.flow svg{display:block;width:100%;height:auto}
+.flow text{font-family:var(--font)}
+/* 위험도 — 색 + 모양 + 글자 */
+.sev{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;border-radius:6px;padding:2px 8px}
+.sev.c{color:var(--critical);background:var(--critical-dim)}
+.sev.h{color:var(--high);background:var(--high-dim)}
+.sev.m{color:var(--medium);background:var(--bg-3)}
+.sev.l{color:var(--low);background:var(--low-dim)}
+.house{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
+.house li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--text-2)}
+.house .sev{flex-shrink:0;min-width:96px;justify-content:center}
+/* 숫자 */
+.stat{background:var(--bg-2);border:1px solid var(--border-2);border-radius:12px;padding:20px}
+.stat .n{font-size:38px;font-weight:700;line-height:1.1;color:var(--text-1)}
+.stat .n small{font-size:16px;font-weight:600;color:var(--text-3)}
+.stat .l{margin:6px 0 10px;font-weight:600}
+.stat .cond{font-size:12.5px;color:var(--text-3);font-family:var(--mono);line-height:1.55}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--border-2)}
+th{color:var(--text-3);font-weight:600;font-size:13px}
+td.num{font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto;background:var(--bg-2);border:1px solid var(--border-2);border-radius:12px}
+.note{border-left:3px solid var(--accent);background:var(--accent-dim);padding:12px 16px;border-radius:0 8px 8px 0;font-size:15px;color:var(--text-2);margin:20px 0 0}
+.measuring{display:inline-block;font-size:12px;font-weight:600;color:var(--info);background:var(--info-dim);border-radius:6px;padding:2px 8px}
+/* 단계 */
+ol.steps{list-style:none;margin:0;padding:0;display:grid;gap:16px;counter-reset:s;grid-template-columns:repeat(4,1fr)}
+@media (max-width:860px){ol.steps{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){ol.steps{grid-template-columns:1fr}}
+ol.steps li{counter-increment:s;background:var(--bg-2);border:1px solid var(--border-2);border-radius:12px;padding:20px;position:relative}
+ol.steps li::before{content:counter(s);display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--btn);color:#fff;font-weight:700;margin-bottom:12px}
+ol.steps p{margin:0;color:var(--text-2);font-size:15px}
+/* 목업 */
+.mock{background:var(--bg-1);border:1px solid var(--border-2);border-radius:12px;overflow:hidden;margin-top:28px}
+.mock .bar{display:flex;gap:6px;align-items:center;padding:10px 14px;background:var(--bg-3);border-bottom:1px solid var(--border-2);font-size:12px;color:var(--text-3)}
+.mock .dot{width:10px;height:10px;border-radius:50%;background:var(--border-3)}
+.mock .body{padding:16px;display:grid;gap:10px}
+.vrow{display:flex;gap:12px;align-items:center;background:var(--bg-2);border:1px solid var(--border-2);border-radius:8px;padding:12px 14px;flex-wrap:wrap}
+.vrow b{display:block;font-size:15px}
+.vrow small{font-family:var(--mono);color:var(--text-3);font-size:12px}
+.vrow .go{margin-left:auto;font-size:13px;color:var(--accent);font-weight:600}
+.mockcap{font-size:12px;color:var(--text-3);margin:8px 0 0}
+/* 다운로드 */
+.dl{background:var(--bg-2);border:1px solid var(--accent-border);border-radius:16px;padding:28px}
+.dl dl{display:grid;grid-template-columns:max-content 1fr;gap:8px 20px;margin:20px 0;font-size:15px}
+.dl dt{color:var(--text-3)}
+.dl dd{margin:0;font-family:var(--mono);font-size:13.5px;word-break:break-all}
+.ph{background:var(--bg-4);border:1px dashed var(--border-3);border-radius:4px;padding:1px 8px;color:var(--text-3)}
+code{font-family:var(--mono);font-size:.9em;background:var(--bg-3);border-radius:4px;padding:1px 6px}
+.warn{display:flex;gap:12px;background:var(--high-dim);border:1px solid var(--high);border-radius:10px;padding:14px 16px;font-size:15px;color:var(--text-1);margin-top:18px}
+.warn svg{flex-shrink:0;margin-top:3px;color:var(--high)}
+.warn ol{margin:6px 0 0;padding-left:20px;color:var(--text-2)}
+ul.plain{margin:0;padding-left:20px;color:var(--text-2)}
+ul.plain li{margin:6px 0}
+details{background:var(--bg-2);border:1px solid var(--border-2);border-radius:10px;margin:0 0 10px}
+summary{cursor:pointer;padding:16px 18px;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:48px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-size:22px;color:var(--accent);flex-shrink:0}
+details[open] summary::after{content:"\2212"}
+details p{margin:0;padding:0 18px 16px;color:var(--text-2);font-size:15px}
+footer{border-top:1px solid var(--border);background:var(--bg-1);padding:32px 0 48px;font-size:14px;color:var(--text-3)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-between}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="kkebi 처음으로">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#c2410c"/><path d="M16 6l8 3v7c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V9z" fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/></svg>
+      kkebi
+    </a>
+    <nav class="links" aria-label="바로가기">
+      <a href="#how">어떻게 동작해요</a>
+      <a href="#numbers">측정 결과</a>
+      <a href="#steps">사용법</a>
+      <a href="#faq">자주 묻는 질문</a>
+      <a class="keep" href="#download">다운로드</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- 1. 히어로 -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <span class="badge">클로즈드 베타 · 초대받은 분만 쓸 수 있어요</span>
+    <h1>내 코드에 보안 구멍이 있는지<br>찾고, 고치고, 다시 확인해요</h1>
+    <p class="lead">코드를 점검해서 위험한 곳을 찾아요. 고치는 방법을 알려 주고, 정말 뚫리는지 안전한 연습장에서 확인한 뒤, 고친 코드로 다시 한 번 확인해요. 개발 전문가가 아니어도 읽을 수 있게 쉬운 말로 알려 드려요.</p>
+    <div class="cta">
+      <a class="btn primary" href="#download">베타 다운로드 (Windows)</a>
+      <a class="btn ghost" href="#how">어떻게 동작하는지 보기</a>
+    </div>
+    <p class="small" style="margin-top:14px">Windows 10 이상 · 서명되지 않은 베타 앱이라 설치할 때 Windows 경고가 떠요. <a href="#smartscreen">안내 보기</a></p>
+  </div>
+</section>
+
+<!-- 2. 동작 방식 -->
+<section id="how">
+  <div class="wrap">
+    <h2>한 번에 네 가지를 해요</h2>
+    <p class="sub">집을 점검하는 일에 빗대면 쉬워요. 먼저 잠기지 않은 문을 찾고, 어떻게 잠글지 알려 주고, 정말 열리는지 시험해 보고, 잠근 뒤에 다시 시험해요.</p>
+
+    <figure class="flow" style="margin:0 0 28px">
+      <svg viewBox="0 0 960 250" role="img" aria-labelledby="flowT flowD">
+        <title id="flowT">kkebi가 일하는 순서</title>
+        <desc id="flowD">1. 코드 점검, 2. 고치는 방법 제안, 3. 격리된 샌드박스에서 실제로 뚫리는지 확인, 4. 고친 뒤 다시 확인. 샌드박스는 인터넷과 분리돼 있어요.</desc>
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--text-3)"/></marker>
+        </defs>
+        <!-- 샌드박스 영역 -->
+        <rect x="490" y="14" width="300" height="222" rx="14" fill="var(--accent-dim)" stroke="var(--accent-border)" stroke-width="2" stroke-dasharray="7 6"/>
+        <text x="640" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent)">격리된 연습장 (샌드박스)</text>
+
+        <g>
+          <rect x="20" y="62" width="210" height="130" rx="12" fill="var(--bg-2)" stroke="var(--border-3)" stroke-width="1.5"/>
+          <circle cx="52" cy="92" r="16" fill="var(--btn)"/><text x="52" y="98" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">1</text>
+          <text x="76" y="97" font-size="17" font-weight="700" fill="var(--text-1)">점검해요</text>
+          <text x="36" y="128" font-size="14" fill="var(--text-2)">코드를 읽고 위험한</text>
+          <text x="36" y="148" font-size="14" fill="var(--text-2)">곳을 찾아요</text>
+          <text x="36" y="174" font-size="12" fill="var(--text-3)">잠기지 않은 문 찾기</text>
+        </g>
+        <path d="M232 127H262" stroke="var(--text-3)" stroke-width="2" marker-end="url(#ar)"/>
+        <g>
+          <rect x="266" y="62" width="210" height="130" rx="12" fill="var(--bg-2)" stroke="var(--border-3)" stroke-width="1.5"/>
+          <circle cx="298" cy="92" r="16" fill="var(--btn)"/><text x="298" y="98" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">2</text>
+          <text x="322" y="97" font-size="17" font-weight="700" fill="var(--text-1)">고쳐 줘요</text>
+          <text x="282" y="128" font-size="14" fill="var(--text-2)">고치는 코드를</text>
+          <text x="282" y="148" font-size="14" fill="var(--text-2)">제안해요</text>
+          <text x="282" y="174" font-size="12" fill="var(--text-3)">자물쇠 다는 법 알려 주기</text>
+        </g>
+        <path d="M478 127H508" stroke="var(--text-3)" stroke-width="2" marker-end="url(#ar)"/>
+        <g>
+          <rect x="512" y="62" width="126" height="130" rx="12" fill="var(--bg-2)" stroke="var(--border-3)" stroke-width="1.5"/>
+          <circle cx="540" cy="90" r="14" fill="var(--btn)"/><text x="540" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">3</text>
+          <text x="562" y="95" font-size="15" font-weight="700" fill="var(--text-1)">시험해요</text>
+          <text x="524" y="124" font-size="13" fill="var(--text-2)">진짜로 뚫리나</text>
+          <text x="524" y="143" font-size="13" fill="var(--text-2)">확인해요</text>
+          <text x="524" y="172" font-size="11.5" fill="var(--text-3)">문이 열리나 당겨 보기</text>
+        </g>
+        <path d="M640 127H658" stroke="var(--text-3)" stroke-width="2" marker-end="url(#ar)"/>
+        <g>
+          <rect x="662" y="62" width="114" height="130" rx="12" fill="var(--bg-2)" stroke="var(--border-3)" stroke-width="1.5"/>
+          <circle cx="688" cy="90" r="14" fill="var(--btn)"/><text x="688" y="96" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">4</text>
+          <text x="708" y="95" font-size="15" font-weight="700" fill="var(--text-1)">다시</text>
+          <text x="674" y="124" font-size="13" fill="var(--text-2)">고친 뒤에도</text>
+          <text x="674" y="143" font-size="13" fill="var(--text-2)">확인해요</text>
+          <text x="674" y="172" font-size="11.5" fill="var(--text-3)">잠근 뒤 또 당겨 보기</text>
+        </g>
+        <path d="M778 127H812" stroke="var(--text-3)" stroke-width="2" marker-end="url(#ar)"/>
+        <g>
+          <rect x="816" y="82" width="130" height="90" rx="12" fill="var(--low-dim)" stroke="var(--low)" stroke-width="1.5"/>
+          <path d="M881 98l22 8v16c0 12-9 20-22 24-13-4-22-12-22-24v-16z" fill="none" stroke="var(--low)" stroke-width="2.5" stroke-linejoin="round" />
+          <path d="M870 126l8 8 14-16" fill="none" stroke="var(--low)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <text x="881" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="var(--low)">결과 확인</text>
+      </svg>
+    </figure>
+    <p class="small" style="margin:-12px 0 28px">전문 용어로는 1번 = SAST(코드 정적 분석), 3~4번 = DAST(실행 중인 앱을 공격해 보는 검사)와 패치 검증이에요. 3번은 인터넷과 분리된 샌드박스 안에서만 일어나요.</p>
+
+    <div class="grid g2">
+      <div class="card">
+        <h3>위험도는 집에 빗대어 읽어요</h3>
+        <p>색을 구분하지 못해도 알 수 있게 모양과 글자를 같이 써요.</p>
+        <ul class="house">
+          <li><span class="sev c"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><polygon points="4,0.5 8,0.5 11.5,4 11.5,8 8,11.5 4,11.5 0.5,8 0.5,4" fill="currentColor"/></svg>심각</span>현관문이 활짝 열려 있어요. 지금 바로 고쳐요.</li>
+          <li><span class="sev h"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><polygon points="6,0.5 11.5,11 0.5,11" fill="currentColor"/></svg>높음</span>창문 잠금이 헐거워요. 빨리 고쳐요.</li>
+          <li><span class="sev m"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><polygon points="6,0.5 11.5,6 6,11.5 0.5,6" fill="currentColor"/></svg>보통</span>담장에 작은 틈이 있어요. 고치면 좋아요.</li>
+          <li><span class="sev l"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="5" fill="currentColor"/></svg>낮음</span>우편함에 이름이 보여요. 참고해요.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>이런 점이 달라요</h3>
+        <ul class="plain">
+          <li>"찾았다"에서 끝나지 않고 <b>고치는 코드</b>까지 줘요.</li>
+          <li>찾은 문제가 정말 위험한지 <b>실제로 시험</b>해 봐요(연습용 표적).</li>
+          <li>고친 코드도 <b>다시 시험</b>해서 막혔는지 확인해요.</li>
+          <li>설명은 "남의 명령을 내 서버에서 실행할 수 있어요"처럼 <b>무슨 일이 생기는지</b>로 써요.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. 성능·신뢰성 -->
+<section id="numbers">
+  <div class="wrap">
+    <h2>측정한 숫자만 보여 드려요</h2>
+    <p class="sub">아래는 우리가 직접 돌려 본 평가 결과예요. 숫자마다 어떤 조건에서 쟀는지 같이 적었어요. 실제 내 코드에서는 다를 수 있어요.</p>
+
+    <div class="grid g3">
+      <div class="stat">
+        <div class="n">87.1<small>%</small></div>
+        <div class="l">있는 취약점 중 찾아낸 비율</div>
+        <div class="cond">코드 176개 · 3회 평균(±0.8)<br>Python · Claude Sonnet 5.5<br>2026-10-30</div>
+      </div>
+      <div class="stat">
+        <div class="n">약 67~69<small>%</small></div>
+        <div class="l">찾았다고 한 것 중 진짜인 비율</div>
+        <div class="cond">같은 측정 3회(67.0 / 68.7 / 67.5)<br>나머지는 오탐(가짜 경고)이에요</div>
+      </div>
+      <div class="stat">
+        <div class="n">99.8<small>% / 68.4%</small></div>
+        <div class="l">공개 벤치마크 전체 (찾은 비율 / 진짜 비율)</div>
+        <div class="cond">OWASP BenchmarkPython 1,230개 · 1회<br>Claude Sonnet 5.5 · 2026-10-30</div>
+      </div>
+    </div>
+
+    <div class="note"><b>솔직하게 말씀드리면:</b> 찾은 문제 3개 중 1개쯤은 가짜 경고일 수 있어요. 같은 파일을 다시 점검하면 결과가 일부 달라지기도 해요(실행 간 겹침 0.754). 그래서 결과를 보고 직접 판단할 수 있게 근거와 위치를 함께 보여 줘요.</div>
+
+    <h3 style="margin:36px 0 10px">언어마다 실력이 달라요</h3>
+    <div class="tablewrap">
+      <table>
+        <caption class="small" style="text-align:left;padding:10px 12px;caption-side:bottom">Claude Sonnet 5.5 · 3회 평균 · 스택별 가이드라인 없이 측정(제품 조건과 다름) · 2026-10-31</caption>
+        <thead><tr><th scope="col">언어</th><th scope="col">찾은 비율</th><th scope="col">진짜인 비율</th><th scope="col">데이터</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Python</th><td class="num">87.1%</td><td class="num">67.7%</td><td>기준 코드 176개</td></tr>
+          <tr><th scope="row">TypeScript</th><td class="num">73.6%</td><td class="num">27.7%</td><td>RealVuln 118개</td></tr>
+          <tr><th scope="row">JavaScript</th><td class="num">55.2%</td><td class="num">26.6%</td><td>RealVuln 39개</td></tr>
+          <tr><th scope="row">PHP</th><td class="num">49.9%</td><td class="num">41.3%</td><td>SastBench 155개</td></tr>
+          <tr><th scope="row">Go</th><td class="num">21.6%</td><td class="num">8.2%</td><td>SastBench 62개</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small" style="margin-top:10px">그래서 베타에서는 <b>Python을 가장 잘 봐요.</b> 다른 언어는 아직 놓치거나 가짜 경고가 많을 수 있어요.</p>
+
+    <div class="grid g2" style="margin-top:28px">
+      <div class="card">
+        <h3>실제로 뚫리는지 확인</h3>
+        <p>연습용으로 만든 취약한 앱에서, 점검이 찾은 문제 중 XSS(남의 스크립트 실행)와 SQL 인젝션(데이터베이스 조작) 한 곳씩을 샌드박스에서 실제로 재현해 확인했어요. 나머지는 "확인 못 함"으로 표시해요. <span class="small">(연습 표적 1종 · Sprint 52 검증 기록)</span></p>
+      </div>
+      <div class="card">
+        <h3>고치는 방법의 품질 <span class="measuring">베타에서 측정 중</span></h3>
+        <p>제안한 패치가 실제로 문제를 막고 코드를 망가뜨리지 않는지의 비율은 아직 공개할 만큼 모으지 못했어요. 베타 15일 동안 측정해서 알려 드릴게요. 비용·속도 수치도 같아요.</p>
+      </div>
+    </div>
+
+    <h3 style="margin:36px 0 10px">안전하게 쓰도록 만든 장치</h3>
+    <div class="grid g2">
+      <div class="card"><h3>인터넷과 분리된 샌드박스</h3><p>공격 시험은 외부와 연결이 끊긴 전용 네트워크 안에서만 해요. 샌드박스 서버에는 비밀번호·API 키를 두지 않고, 끝나면 지워요.</p></div>
+      <div class="card"><h3>내가 확인한 것만 실행</h3><p>분석을 시작하기 전에 계획을 보여 주고 확인을 받아요. 공격 시험도 동의 체크를 해야 시작돼요.</p></div>
+      <div class="card"><h3>비밀값은 로그에 남기지 않아요</h3><p>토큰·비밀번호·키는 기록(로그)에 쓰지 않는 것을 개발 규칙으로 정해 두고 지켜요.</p></div>
+      <div class="card"><h3>초대 전용 · 15일 뒤 폐기</h3><p>초대한 분만 가입할 수 있어요. 베타가 끝나면 서버·저장된 데이터·베타용 키를 통째로 지워요.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. 사용법 -->
+<section id="steps">
+  <div class="wrap">
+    <h2>이렇게 써요</h2>
+    <p class="sub">처음부터 끝까지 네 단계예요.</p>
+    <ol class="steps">
+      <li><h3>설치해요</h3><p>아래에서 설치 파일을 받아 실행해요. Windows 경고가 뜨면 안내대로 진행해요.</p></li>
+      <li><h3>로그인해요</h3><p>초대받은 계정으로 로그인해요. 초대받지 않은 계정은 가입할 수 없어요.</p></li>
+      <li><h3>코드를 알려 줘요</h3><p>공개 GitHub 저장소 주소를 넣거나, 내 컴퓨터의 폴더를 열어요. 그다음 [분석 시작]을 눌러요.</p></li>
+      <li><h3>보고 고쳐요</h3><p>위험한 순서로 나온 목록에서 하나 골라 "왜 위험한지"와 "고치는 코드"를 보고 적용해요.</p></li>
+    </ol>
+
+    <div class="mock" role="img" aria-label="결과 목록 예시 화면. 서버가 아무 주소나 대신 열어 주는 문제는 높음, 사용자 이름 검색이 데이터베이스를 조작할 수 있는 문제는 심각으로 표시된다.">
+      <div class="bar" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:8px">위험한 곳 2개 · 위에서부터 차례로 고치면 돼요</span></div>
+      <div class="body" aria-hidden="true">
+        <div class="vrow"><span class="sev c"><svg width="12" height="12" viewBox="0 0 12 12"><polygon points="4,0.5 8,0.5 11.5,4 11.5,8 8,11.5 4,11.5 0.5,8 0.5,4" fill="currentColor"/></svg>심각</span><div><b>검색창으로 데이터베이스를 마음대로 조작할 수 있어요</b><small>routes/users.py 24번째 줄</small></div><span class="go">고치는 방법 보기</span></div>
+        <div class="vrow"><span class="sev h"><svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,0.5 11.5,11 0.5,11" fill="currentColor"/></svg>높음</span><div><b>서버가 아무 주소나 대신 열어 줘요</b><small>routes/proxy.py 13번째 줄</small></div><span class="go">고치는 방법 보기</span></div>
+      </div>
+    </div>
+    <p class="mockcap">예시 화면이에요. 실제 앱 화면과 조금 다를 수 있어요.</p>
+  </div>
+</section>
+
+<!-- 5. 베타 안내 -->
+<section id="beta">
+  <div class="wrap">
+    <h2>베타 전에 알아 두세요</h2>
+    <p class="sub">클로즈드 베타라서 아직 제한이 있어요. 아래 내용에 동의하는 분만 사용해 주세요.</p>
+    <ul class="plain" style="max-width:720px">
+      <li><b>초대 전용이에요.</b> 초대받은 계정만 가입·로그인할 수 있어요.</li>
+      <li><b>15일 뒤 데이터를 모두 폐기해요.</b> 올린 코드, 분석 결과, 계정 정보가 베타 서버와 함께 지워져요. 필요한 결과는 미리 저장해 두세요.</li>
+      <li><b>코드 일부가 AI 제공자로 전송돼요.</b> 분석하려면 코드 조각을 AI 서비스(Anthropic 등)에 보내야 해요. 민감한 코드는 올리지 마세요.</li>
+      <li><b>무료 모델을 고르면 그 무료 API의 약관이 적용돼요.</b> 입력한 내용이 해당 제공자의 정책에 따라 처리될 수 있어요.</li>
+      <li><b>공격 시험(DAST)은 연습용 표적으로 체험해요.</b> 내 서비스 주소를 검사하는 기능은 베타 중에 추가할 예정이에요.</li>
+      <li>패치 검증을 켜면 <b>고친 코드 조각이 격리된 샌드박스 서버에서 실행</b>돼요. 끝나면 지워요.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 6. 다운로드 -->
+<section id="download">
+  <div class="wrap">
+    <h2>베타 다운로드 (Windows)</h2>
+    <p class="sub">초대받은 분만 로그인할 수 있어요. 설치 파일은 GitHub 릴리스에서 받아요.</p>
+    <div class="dl">
+      <a class="btn primary" href="https://github.com/ttogle918/kkebi/releases/latest" rel="noopener">최신 베타 받으러 가기 (GitHub Releases)</a>
+      <dl>
+        <dt>파일 이름</dt><dd data-fill="filename"><span class="ph">[파일 이름 — 릴리스 때 채워요]</span></dd>
+        <dt>버전</dt><dd data-fill="version"><span class="ph">[버전]</span></dd>
+        <dt>SHA-256</dt><dd data-fill="sha256"><span class="ph">[SHA-256 해시]</span></dd>
+      </dl>
+      <p class="small">받은 파일이 맞는지 확인하려면 PowerShell에서 <code>Get-FileHash .\파일이름 -Algorithm SHA256</code> 를 실행해 위 값과 같은지 비교하세요.</p>
+    </div>
+
+    <div class="warn" id="smartscreen" role="note">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+      <div><b>"Windows의 PC 보호" 경고가 떠요</b><br>베타 앱은 아직 유료 코드 서명 인증서가 없어서 처음 실행할 때 경고가 나와요. 위 SHA-256 값이 같은지 확인한 뒤에만 진행하세요.
+        <ol><li>"추가 정보"를 눌러요.</li><li>"실행"을 눌러요.</li></ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <h2>자주 묻는 질문</h2>
+    <details><summary>누구나 쓸 수 있나요?</summary><p>아직 아니에요. 초대받은 분만 가입해서 쓸 수 있는 클로즈드 베타예요.</p></details>
+    <details><summary>코딩을 몰라도 쓸 수 있나요?</summary><p>네. 결과를 "무슨 일이 생기는지"로 설명하고 고치는 코드를 같이 보여 줘요. 다만 코드를 적용하기 전에 내용을 한번 읽어 보는 걸 권해요.</p></details>
+    <details><summary>내 코드는 어디로 가나요?</summary><p>분석할 때 코드 조각이 AI 제공자(Anthropic 등)로 전송돼요. 베타 서버의 데이터는 15일 뒤 모두 폐기해요. 비밀번호·키가 들어 있는 파일은 올리지 마세요.</p></details>
+    <details><summary>"실제로 뚫리는지 확인"은 내 서비스를 공격하는 건가요?</summary><p>아니에요. 베타에서는 연습용으로 만든 표적에서만 시험해요. 내 서비스 주소를 검사하는 기능은 베타 중에 추가할 예정이고, 그때도 내 소유임을 확인한 주소만 허용할 계획이에요.</p></details>
+    <details><summary>찾은 문제를 다 믿어도 되나요?</summary><p>아니에요. 측정에서 찾은 문제의 약 3분의 1은 가짜 경고였어요. 위치와 이유를 보고 직접 판단해 주세요.</p></details>
+    <details><summary>왜 Windows 경고가 뜨나요?</summary><p>코드 서명을 하지 않은 베타 앱이라서 그래요. <a href="#smartscreen">안내</a>대로 SHA-256 값을 확인한 뒤 실행해 주세요.</p></details>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><b style="color:var(--text-1)">kkebi</b> · 클로즈드 베타<br>이 페이지의 숫자는 개발 중 직접 측정한 값이에요.</div>
+    <div>문의: <span class="ph">[연락처 — 마스터가 채워요]</span><br>
+      <a href="https://github.com/ttogle918/kkebi">GitHub 저장소</a></div>
+  </div>
+</footer>
+</body>
+</html>
