@@ -6,39 +6,61 @@
 <title>kkebi — 내 코드의 보안 구멍 찾기</title>
 <meta name="description" content="코드 보안 점검, 고치는 방법 제안, 안전한 샌드박스에서 실제로 뚫리는지 확인, 고친 뒤 다시 확인까지. 설문에 참여하면 kkebi 클로즈드 베타테스트를 신청할 수 있어요.">
 <meta name="color-scheme" content="light dark">
+<script>
+/* 첫 그림 전에 화면 모드를 정해 깜빡임을 막는다. 저장소를 못 쓰는 브라우저면 기본(밝게). */
+(function(){var t='light';try{var s=localStorage.getItem('kkebi-theme');if(s==='light'||s==='dark'||s==='system')t=s;}catch(e){}document.documentElement.setAttribute('data-theme',t);})();
+</script>
 <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,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">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta property="og:image" content="https://kkebi.app/og-image.png">
 <meta property="og:image:width" content="512"><meta property="og:image:height" content="512">
 <style>
-/* 색 출처: apps/frontend/src/ui-v2/styles/tokens.css (어둡게 = 기본 값, 밝게 = data-theme=light 값) */
+/* 색 출처: apps/frontend/src/ui-v2/styles/tokens.css. 기본 = 밝게(흰 화면).
+   html[data-theme] = light | dark | system — 머리말의 화면 모드 버튼으로 바꾸고, 고른 값은 이 브라우저에만 기억한다. */
 :root{
+  color-scheme:light;
+  --bg-0:#f4f2ee;--bg-1:#faf9f7;--bg-2:#ffffff;--bg-3:#f1efeb;--bg-4:#e8e5df;
+  --border:#e4e1db;--border-2:#d6d2ca;--border-3:#b9b4aa;
+  --text-1:#1c1b19;--text-2:#47443e;--text-3:#5e5951;
+  --brand:#ea580c;--accent:#ad3a0b;--accent-dim:rgba(234,88,12,.1);--accent-border:rgba(194,65,12,.45);
+  --btn:#c2410c;--btn-hover:#9a3412;--on-accent:#fff;
+  --critical:#b91c1c;--critical-dim:rgba(185,28,28,.08);
+  --high:#92400e;--high-dim:rgba(146,64,14,.08);
+  --medium:#854d0e;--low:#166534;--low-dim:rgba(22,101,52,.1);
+  --info:#1d4ed8;--info-dim:rgba(29,78,216,.08);
+  --shadow:rgba(28,27,25,.12);
+  --font:'Space Grotesk','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  --mono:'JetBrains Mono',Consolas,ui-monospace,monospace;
+}
+:root[data-theme="dark"]{
   color-scheme:dark;
   --bg-0:#080809;--bg-1:#0d0d0f;--bg-2:#111114;--bg-3:#161619;--bg-4:#1c1c20;
   --border:#1f1f24;--border-2:#2a2a30;--border-3:#3a3a44;
   --text-1:#f1f1f6;--text-2:#b4b4be;--text-3:#8c8c97;
   --brand:#f97316;--accent:#f97316;--accent-dim:rgba(249,115,22,.12);--accent-border:rgba(249,115,22,.45);
-  --btn:#c2410c;--btn-hover:#9a3412;--on-accent:#fff;
   --critical:#f25555;--critical-dim:rgba(242,85,85,.1);
   --high:#f59e0b;--high-dim:rgba(245,158,11,.1);
   --medium:#eab308;--low:#22c55e;--low-dim:rgba(34,197,94,.1);
   --info:#569cd6;--info-dim:rgba(86,156,214,.1);
-  --font:'Space Grotesk','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
-  --mono:'JetBrains Mono',Consolas,ui-monospace,monospace;
+  --shadow:rgba(0,0,0,.25);
 }
-@media (prefers-color-scheme:light){
-  :root{
-    color-scheme:light;
-    --bg-0:#f4f2ee;--bg-1:#faf9f7;--bg-2:#ffffff;--bg-3:#f1efeb;--bg-4:#e8e5df;
-    --border:#e4e1db;--border-2:#d6d2ca;--border-3:#b9b4aa;
-    --text-1:#1c1b19;--text-2:#47443e;--text-3:#5e5951;
-    --brand:#ea580c;--accent:#ad3a0b;--accent-dim:rgba(234,88,12,.1);--accent-border:rgba(194,65,12,.45);
-    --critical:#b91c1c;--critical-dim:rgba(185,28,28,.08);
-    --high:#92400e;--high-dim:rgba(146,64,14,.08);
-    --medium:#854d0e;--low:#166534;--low-dim:rgba(22,101,52,.1);
-    --info:#1d4ed8;--info-dim:rgba(29,78,216,.08);
+@media (prefers-color-scheme:dark){
+  :root[data-theme="system"]{
+    color-scheme:dark;
+    --bg-0:#080809;--bg-1:#0d0d0f;--bg-2:#111114;--bg-3:#161619;--bg-4:#1c1c20;
+    --border:#1f1f24;--border-2:#2a2a30;--border-3:#3a3a44;
+    --text-1:#f1f1f6;--text-2:#b4b4be;--text-3:#8c8c97;
+    --brand:#f97316;--accent:#f97316;--accent-dim:rgba(249,115,22,.12);--accent-border:rgba(249,115,22,.45);
+    --critical:#f25555;--critical-dim:rgba(242,85,85,.1);
+    --high:#f59e0b;--high-dim:rgba(245,158,11,.1);
+    --medium:#eab308;--low:#22c55e;--low-dim:rgba(34,197,94,.1);
+    --info:#569cd6;--info-dim:rgba(86,156,214,.1);
+    --shadow:rgba(0,0,0,.25);
   }
 }
+.theme-btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-2);background:var(--bg-2);color:var(--text-2);font:600 13px var(--font);cursor:pointer;white-space:nowrap}
+.theme-btn:hover{color:var(--text-1);border-color:var(--border-3)}
+.theme-btn svg{width:16px;height:16px;flex-shrink:0}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
@@ -143,7 +165,7 @@ details p{margin:0;padding:0 18px 16px;color:var(--text-2);font-size:15px}
 @media (max-width:560px){.cta-note{max-width:none}.hero .cta .btn{width:100%}}
 .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
 @media (max-width:900px){.hero-grid{grid-template-columns:1fr;gap:32px}}
-.hero .mock{margin-top:0;box-shadow:0 18px 50px rgba(0,0,0,.25)}
+.hero .mock{margin-top:0;box-shadow:0 18px 50px var(--shadow)}
 .facts{display:flex;flex-wrap:wrap;gap:8px 20px;margin:28px 0 0;padding:0;list-style:none;font-size:14px;color:var(--text-2)}
 .facts li{display:flex;align-items:center;gap:8px}
 .facts li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent)}
@@ -179,6 +201,10 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
       <a href="#steps">사용법</a>
       <a href="#faq">자주 묻는 질문</a>
       <a href="#download">베타 다운로드</a>
+      <button type="button" class="theme-btn keep" id="theme-btn" aria-live="polite">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg>
+        <span id="theme-label">밝게</span>
+      </button>
       <a class="btn primary keep" href="https://docs.google.com/forms/d/e/1FAIpQLSeEf9apQFWARNgekljx84l4uztdnW0Mb-DS9ZbDItXxJpqBDQ/viewform" target="_blank" rel="noopener" style="min-height:40px;padding:0 16px;font-size:14px">설문조사 하기</a>
     </nav>
   </div>
@@ -480,5 +506,20 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
       <a href="https://docs.google.com/forms/d/e/1FAIpQLSeEf9apQFWARNgekljx84l4uztdnW0Mb-DS9ZbDItXxJpqBDQ/viewform" target="_blank" rel="noopener">설문조사 하기</a> · <a href="https://github.com/ttogle918/kkebi">GitHub 저장소</a></div>
   </div>
 </footer>
+<script>
+(function(){
+  var ORDER=['light','dark','system'];
+  var LABEL={light:'밝게',dark:'어둡게',system:'시스템'};
+  var root=document.documentElement,btn=document.getElementById('theme-btn'),label=document.getElementById('theme-label');
+  function show(t){label.textContent=LABEL[t];btn.setAttribute('aria-label','화면 모드: '+LABEL[t]+' (눌러서 바꾸기)');}
+  function current(){var t=root.getAttribute('data-theme');return ORDER.indexOf(t)<0?'light':t;}
+  show(current());
+  btn.addEventListener('click',function(){
+    var next=ORDER[(ORDER.indexOf(current())+1)%ORDER.length];
+    root.setAttribute('data-theme',next);show(next);
+    try{localStorage.setItem('kkebi-theme',next);}catch(e){}
+  });
+})();
+</script>
 </body>
 </html>
