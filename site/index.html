@@ -144,6 +144,7 @@ ol.steps p{margin:0;color:var(--text-2);font-size:15px}
 .mockcap{font-size:12px;color:var(--text-3);margin:8px 0 0}
 /* 다운로드 */
 .dl{background:var(--bg-2);border:1px solid var(--accent-border);border-radius:16px;padding:28px}
+.dl h3{margin:24px 0 8px}
 .dl dl{display:grid;grid-template-columns:max-content 1fr;gap:8px 20px;margin:20px 0;font-size:15px}
 .dl dt{color:var(--text-3)}
 .dl dd{margin:0;font-family:var(--mono);font-size:13.5px;word-break:break-all}
@@ -225,7 +226,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
       </div>
       <ul class="facts">
         <li>개발 전문가가 아니어도 읽을 수 있어요</li>
-        <li>초대받은 분만 사용(Windows)</li>
+        <li>초대받은 분만 사용(Windows·Mac)</li>
         <li>측정한 숫자만 공개해요</li>
       </ul>
     </div>
@@ -420,7 +421,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
     <h2>이렇게 써요</h2>
     <p class="sub">처음부터 끝까지 네 단계예요.</p>
     <ol class="steps">
-      <li><h3>설치해요</h3><p>아래에서 설치 파일을 받아 실행해요. Windows 경고가 뜨면 안내대로 진행해요.</p></li>
+      <li><h3>설치해요</h3><p>아래에서 내 컴퓨터(Windows 또는 Mac)에 맞는 설치 파일을 받아 실행해요. 보안 경고가 뜨면 안내대로 진행해요.</p></li>
       <li><h3>로그인해요</h3><p>초대받은 계정으로 로그인해요. 초대받지 않은 계정은 가입할 수 없어요.</p></li>
       <li><h3>코드를 알려 줘요</h3><p>공개 GitHub 저장소 주소를 넣거나, 내 컴퓨터의 폴더를 열어요. 그다음 [분석 시작]을 눌러요.</p></li>
       <li><h3>보고 고쳐요</h3><p>위험한 순서로 나온 목록에서 하나 골라 "왜 위험한지"와 "고치는 코드"를 보고 적용해요.</p></li>
@@ -447,22 +448,41 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
 <!-- 6. 다운로드 -->
 <section id="download">
   <div class="wrap">
-    <h2>베타 다운로드 (Windows) <span class="pill">베타 참여자용</span></h2>
+    <h2>베타 다운로드 (Windows · Mac) <span class="pill">베타 참여자용</span></h2>
     <p class="sub">이 섹션은 <b>베타 참여자용</b>이에요. 설문 후 베타테스트에 신청해 초대받은 분만 로그인할 수 있어요. 설치 파일은 GitHub 릴리스에서 받아요.</p>
     <div class="dl">
       <a class="btn primary" href="https://github.com/ttogle918/kkebi/releases/latest" rel="noopener">최신 베타 받으러 가기 (GitHub Releases)</a>
+      <h3>Windows</h3>
       <dl>
         <dt>파일 이름</dt><dd data-fill="filename">kkebi_0.1.0-beta.1_x64-setup.exe</dd>
         <dt>버전</dt><dd data-fill="version">0.1.0-beta.1 (약 1.6MB)</dd>
         <dt>SHA-256</dt><dd data-fill="sha256">86E91F93F0C54FDFD977FC2892EE734C506825F2988363202C9FBF4288B1F17A</dd>
       </dl>
       <p class="small">받은 파일이 맞는지 확인하려면 PowerShell에서 <code>Get-FileHash .\파일이름 -Algorithm SHA256</code> 를 실행해 위 값과 같은지 비교하세요.</p>
+      <h3>Mac (Apple 실리콘·인텔, macOS 11 이상)</h3>
+      <dl>
+        <dt>파일 이름</dt><dd data-fill="mac-filename">kkebi_0.1.0-beta.1_universal.dmg</dd>
+        <dt>버전</dt><dd data-fill="mac-version">0.1.0-beta.1 (약 6.3MB)</dd>
+        <dt>SHA-256</dt><dd data-fill="mac-sha256">bcf677ccb7c44ae2ba0ffe745e65186cc6a19584d8a44169f7803208b4fb95ce</dd>
+      </dl>
+      <p class="small">받은 파일이 맞는지 확인하려면 터미널에서 <code>shasum -a 256 ~/Downloads/kkebi_0.1.0-beta.1_universal.dmg</code> 를 실행해 위 값과 같은지 비교하세요.</p>
     </div>
 
     <div class="warn" id="smartscreen" role="note">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
       <div><b>"Windows의 PC 보호" 경고가 떠요</b><br>베타 앱은 아직 유료 코드 서명 인증서가 없어서 처음 실행할 때 경고가 나와요. 위 SHA-256 값이 같은지 확인한 뒤에만 진행하세요.
         <ol><li>"추가 정보"를 눌러요.</li><li>"실행"을 눌러요.</li></ol>
+      </div>
+    </div>
+
+    <div class="warn" id="gatekeeper" role="note">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+      <div><b>Mac에서는 "확인할 수 없습니다" 경고가 떠요</b><br>먼저 DMG를 열고 kkebi를 "Applications(응용 프로그램)" 폴더로 끌어 놓아요. 처음 열면 "Apple은 'kkebi'에 악성 코드가 없음을 확인할 수 없습니다"라는 경고가 떠요(macOS 버전에 따라 문구가 조금 달라요). 베타 앱이 아직 Apple 공증을 받지 않아서예요. 위 SHA-256 값이 같은지 확인한 뒤에만 진행하세요.
+        <p style="margin:10px 0 0"><b>macOS 15 이상</b></p>
+        <ol><li>경고에서 "완료"를 눌러요.</li><li>시스템 설정 → 개인정보 보호 및 보안으로 가요.</li><li>아래쪽 "보안"에서 "그래도 열기"를 눌러요.</li><li>확인 창에서 한 번 더 "그래도 열기"를 눌러요.</li><li>암호 또는 Touch ID로 승인해요.</li></ol><p class="small" style="margin:6px 0 0">"그래도 열기" 버튼은 앱을 열어 본 뒤 약 1시간 동안만 보여요.</p>
+        <p style="margin:10px 0 0"><b>macOS 14 이하</b></p>
+        <ol><li>Finder의 Applications(응용 프로그램) 폴더에서 kkebi를 Control-클릭(또는 오른쪽 클릭)해요.</li><li>"열기"를 누르고, 한 번 더 "열기"를 눌러요.</li></ol>
+        <p class="small" style="margin-top:10px">"손상되어 열 수 없습니다"가 나오면 운영자에게 알려 주세요.</p>
       </div>
     </div>
   </div>
@@ -478,7 +498,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
     <details><summary>내 코드는 어디로 가나요?</summary><p>분석할 때 코드 조각이 AI 제공자(Anthropic 등)로 전송돼요. 베타 서버의 데이터는 15일 뒤 모두 폐기해요. 비밀번호·키가 들어 있는 파일은 올리지 마세요.</p></details>
     <details><summary>"실제로 뚫리는지 확인"은 내 서비스를 공격하는 건가요?</summary><p>아니에요. 베타에서는 연습용으로 만든 표적에서만 시험해요. 내 서비스 주소를 검사하는 기능은 베타 중에 추가할 예정이고, 그때도 내 소유임을 확인한 주소만 허용할 계획이에요.</p></details>
     <details><summary>찾은 문제를 다 믿어도 되나요?</summary><p>아니에요. 측정에서 찾은 문제의 약 3분의 1은 가짜 경고였어요. 위치와 이유를 보고 직접 판단해 주세요.</p></details>
-    <details><summary>왜 Windows 경고가 뜨나요?</summary><p>코드 서명을 하지 않은 베타 앱이라서 그래요. <a href="#smartscreen">안내</a>대로 SHA-256 값을 확인한 뒤 실행해 주세요.</p></details>
+    <details><summary>왜 Windows·Mac 경고가 뜨나요?</summary><p>베타 앱이 아직 정식 코드 서명(Windows)·Apple 공증(Mac)을 받지 않아서 그래요. <a href="#smartscreen">Windows 안내</a> 또는 <a href="#gatekeeper">Mac 안내</a>대로 SHA-256 값을 확인한 뒤 실행해 주세요.</p></details>
   </div>
 </section>
 
